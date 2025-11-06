@@ -1,11 +1,46 @@
 # MyBeam
 
-## MyBeam is a mini version of the beam implementioin here: https://github.com/erlang/otp
+MyBeam is a mini version of the beam implementioin here: https://github.com/erlang/otp
 
 ## Features
 
 - Load generic beam instructions into specific beam instructions
 - Execute those specific beam structions
+
+## Build & Run projects
+
+Get repo:
+```sh
+# Clone repo
+git clone https://github.com/Maxzimmerman/MyBeam
+
+# Move inside
+cd MyBeam
+```
+
+1. Beam runtime
+
+```sh
+cd beam/build
+
+# Create build files
+cmake ..
+
+# Build
+cmake --build .
+
+# Execute
+./beam
+```
+
+2. Mix debug project
+
+```sh
+cd beam/my_beam
+
+# run
+iex -S mix
+```
 
 ## Modules
 
