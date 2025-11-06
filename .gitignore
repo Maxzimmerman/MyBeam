@@ -1,0 +1,26 @@
+# Build directories
+beam/build/*
+/CMakeFiles/
+/CMakeCache.txt
+/Makefile
+/*.cmake
+/*.log
+
+# Executables
+*.exe
+*.out
+*.app
+*.so
+*.dylib
+
+# IDE / Editor files
+*.swp
+*.swo
+*.vscode/
+*.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+!beam/build/.gitkeep
