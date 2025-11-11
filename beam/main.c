@@ -48,7 +48,6 @@ int main(void) {
             break;
 
         chunk_size = ntohl(raw_size);
-        printf("chunk id: %s, chunk size: %u bytes\n", chunk_id, chunk_size);
 
         unsigned char *data = malloc(chunk_size);
         if (!data) {
@@ -57,7 +56,7 @@ int main(void) {
         }
 
         // --- Handle AtU8 or Atom chunks (atom tables)
-        if (strncmp(chunk_id, "Atom", 4) == 0) {
+        if (strncmp(chunk_id, "AtU8", 4) == 0) {
             if (fread(data, 1, chunk_size, f) != chunk_size) {
                 fprintf(stderr, "Unexpected EOF reading atom chunk\n");
                 free(data);
@@ -80,9 +79,16 @@ int main(void) {
             // --- Just skip over the code chunk for now
             fseek(f, chunk_size, SEEK_CUR);
             printf("→ Found Code chunk (skipped)\n");
-
+        } else if (strncmp(chunk_id, "ImpT", 4) == 0) {
+            fseek(f, chunk_size, SEEK_CUR);
+            printf("→ Found Imports chunk (skipped)\n");
+        } else if (strncmp(chunk_id, "ExpT", 4) == 0) {
+            fseek(f, chunk_size, SEEK_CUR);
+            printf("→ Found Exports chunk (skipped)\n");
+        } else if (strncmp(chunk_id, "LitT", 4) == 0) {
+            fseek(f, chunk_size, SEEK_CUR);
+            printf("→ Found Literals chunk (skipped)\n");
         } else {
-            // --- Other chunks (StrT, ImpT, ExpT, etc.)
             fseek(f, chunk_size, SEEK_CUR);
         }
 
