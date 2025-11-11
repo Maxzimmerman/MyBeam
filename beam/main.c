@@ -22,7 +22,20 @@ int main(void) {
     //   4 bytes: "FOR1"
     //   4 bytes: total file size
     //   4 bytes: "BEAM"
-    fseek(f, 12, SEEK_SET);
+
+    // we allocate 5 bytes because c string need to end with a null terminator '\0'
+    char header[5] = {0};
+    uint32_t total_size;
+    char  beam[5] = {0};
+    fread(header, 1, 4, f);
+    fread(&total_size, 1, 4, f);
+    fread(beam, 1, 4, f);
+
+    printf("|||||||||||||||FILE START|||||||||||||\n");
+    printf("%s\n", header);
+    printf("%u\n", total_size);
+    printf("%s\n", beam);
+    printf("|||||||||||||||FILE END|||||||||||||||\n");
 
     char chunk_id[5] = {0};
     uint32_t raw_size, chunk_size;
@@ -44,7 +57,7 @@ int main(void) {
         }
 
         // --- Handle AtU8 or Atom chunks (atom tables)
-        if (strncmp(chunk_id, "AtU8", 4) == 0 || strncmp(chunk_id, "Atom", 4) == 0) {
+        if (strncmp(chunk_id, "Atom", 4) == 0) {
             if (fread(data, 1, chunk_size, f) != chunk_size) {
                 fprintf(stderr, "Unexpected EOF reading atom chunk\n");
                 free(data);
