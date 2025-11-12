@@ -77,8 +77,22 @@ int main(void) {
 
         } else if (strncmp(chunk_id, "Code", 4) == 0) {
             // --- Just skip over the code chunk for now
-            fseek(f, chunk_size, SEEK_CUR);
-            printf("→ Found Code chunk (skipped)\n");
+            if(fread(data, 1, chunk_size, f) != chunk_size) {
+                fprintf(stderr, "Could not read code data");
+                free(data);
+                break;
+            }
+
+            uint32_t atom_count = ntohl(*(uint32_t *)data);
+            printf("→ Code chunk with %" PRIu32 " code\n", atom_count);
+
+            size_t offset = 4;
+            for (uint32_t i = 0; i < atom_count && offset < chunk_size; i++) {
+                uint8_t len = data[offset++];
+                if (offset + len > chunk_size) break;
+                printf("  OPCODE %-3u: %.*s\n", i + 1, len, data + offset);
+                offset += len;
+            }
         } else if (strncmp(chunk_id, "ImpT", 4) == 0) {
             fseek(f, chunk_size, SEEK_CUR);
             printf("→ Found Imports chunk (skipped)\n");
