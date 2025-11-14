@@ -14,7 +14,13 @@ int main(void) {
     }
 
     // Skip BEAM header: "FOR1" + size + "BEAM"
-    fseek(f, 12, SEEK_SET);
+    char header[4];
+    uint32_t file_size;
+
+    fread(header, 1, 4, f);        // "FOR1"
+    fread(&file_size, 1, 4, f);    // total BEAM size
+    file_size = ntohl(file_size);
+    fread(header, 1, 4, f);  
 
     char chunk_id[5] = {0};
     uint32_t raw_size, chunk_size;
@@ -24,6 +30,8 @@ int main(void) {
 
         if (fread(&raw_size, 1, 4, f) != 4) break;
         chunk_size = ntohl(raw_size);
+
+        printf("Chunk: %s (%u bytes)\n", chunk_id, chunk_size);
 
         unsigned char *data = malloc(chunk_size);
         if (!data) {
@@ -37,22 +45,23 @@ int main(void) {
             break;
         }
 
-        // --- Only handle Atom chunk (AtU8)
-        if (strncmp(chunk_id, "AtU8", 4) == 0 || strncmp(chunk_id, "Atom", 4) == 0) {
-            uint32_t atom_count;
-            memcpy(&atom_count, data, 4);
-            atom_count = ntohl(atom_count);
+        printf("First 4 bytes of AtU8: %02X %02X %02X %02X\n",
+       data[0], data[1], data[2], data[3]);
 
-            printf("→ Atom chunk (%" PRIu32 " atoms):\n", atom_count);
-            printf("%s\n", data);
-            size_t offset = 4;  // Start after atom_count
-            for (uint32_t i = 0; i < atom_count && offset < chunk_size; i++) {
-                uint8_t len = data[offset++];
-                if (offset + len > chunk_size) break;
 
-                printf("len: %u, data: %p, offset: %zu", len, (void*)data, offset);
-                printf(":%.*s\n", len, data + offset);  // print atom text
-            }
+       size_t offset = 0;
+
+        while (offset + 2 <= chunk_size) {
+            uint16_t len = (data[offset] << 8) | data[offset+1];
+            offset += 2;
+
+            if (offset + len > chunk_size) break;
+
+            printf("Atom: %.*s\n", len, data + offset);
+            offset += len;
+        }
+
+
         }
 
         free(data);
