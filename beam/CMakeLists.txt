@@ -6,3 +6,5 @@ project(beam C)
 
 # Specify the executable and the source files
 add_executable(beam main.c)
+target_link_libraries(beam z)
+
