@@ -31,6 +31,7 @@ static int load_file(const char *path, byte **outbuf, usize *outsize) {
 /* Helper: read big-endian 32-bit */
 static int read_be32(const byte *p, usize rem, Uint32 *val) {
     if (rem < 4) return 0;
+    // we convert the 4 1byte(8bits) numbers into one 4byte(32bits) number
     *val = ((Uint32)p[0] << 24) | ((Uint32)p[1] << 16) | ((Uint32)p[2] << 8) | ((Uint32)p[3]);
     return 1;
 }
