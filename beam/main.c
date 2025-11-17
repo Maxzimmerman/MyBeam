@@ -41,15 +41,28 @@ typedef struct {
     const byte *end;
 } Reader;
 
-static void reader_init(Reader *r, const byte *data, usize sz) { r->p = data; r->end = data + sz; }
-static usize reader_remaining(const Reader *r) { return (usize)(r->end - r->p); }
+// sets the p to the start and the end to the end of the file
+static void reader_init(Reader *r, const byte *data, usize sz) { 
+    r->p = data; r->end = data + sz; 
+}
 
+// returns the remaining bytes by substracting the current from the end
+static usize reader_remaining(const Reader *r) { 
+    return (usize)(r->end - r->p); 
+}
+
+// checks if bytes to read
+// reads the bytes at *->p into out 
+// returns 1 if success and 0 if not
 static int reader_read_u8(Reader *r, byte *out) {
     if (reader_remaining(r) < 1) return 0;
     *out = *r->p++;
     return 1;
 }
 
+// check if bytes to read
+// points out to bytes at p
+// moves p by len bytes
 static int reader_read_bytes(Reader *r, const byte **out, usize len) {
     if (reader_remaining(r) < len) return 0;
     *out = r->p;
@@ -156,6 +169,7 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
             int tag;
             usize val;
             if (!read_tagged(&r, &tag, &val)) {
+                printf("TEEST, %zu\n", val);
                 fprintf(stderr, "Failed reading tagged length for atom %zu\n", i);
                 return 0;
             }
@@ -164,6 +178,7 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
         } else {
             byte blen;
             if (!reader_read_u8(&r, &blen)) {
+                printf("TEEST, %u\n", blen);
                 fprintf(stderr, "Failed reading byte length for atom %zu\n", i);
                 return 0;
             }
@@ -177,6 +192,7 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
 
         const byte *s;
         if (!reader_read_bytes(&r, &s, length)) return 0;
+        printf("TST %zu\n", s);
 
         /* print atom (may be UTF-8) */
         printf("  %zu: %.*s\n", i, (int)length, (const char*)s);
