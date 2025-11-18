@@ -142,6 +142,17 @@ static int read_tagged(Reader *r, int *tag_out, usize *val_out) {
     }
 }
 
+static int parse_header(const byte *chunk_data, Uint32 chunk_size) {
+    Reader r;
+    reader_init(&r, chunk_data, chunk_size);
+
+    Sint32 count_signed;
+    if(!reader_read_i32(&r, &count_signed)) {
+        printf(stderr, "Failed reading header\n");
+        return 0;
+    }
+}
+
 /* -- replace your parse_atom_chunk() with this version -- */
 static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
     Reader r;
@@ -170,7 +181,6 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
             int tag;
             usize val;
             if (!read_tagged(&r, &tag, &val)) {
-                printf("TEEST, %zu\n", val);
                 fprintf(stderr, "Failed reading tagged length for atom %zu\n", i);
                 return 0;
             }
@@ -179,7 +189,6 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
         } else {
             byte blen;
             if (!reader_read_u8(&r, &blen)) {
-                printf("TEEST, %u\n", blen);
                 fprintf(stderr, "Failed reading byte length for atom %zu\n", i);
                 return 0;
             }
@@ -193,14 +202,12 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
 
         const byte *s;
         if (!reader_read_bytes(&r, &s, length)) return 0;
-        printf("TST %zu\n", s);
 
         /* print atom (may be UTF-8) */
         printf("  %zu: %.*s\n", i, (int)length, (const char*)s);
     }
     return 1;
 }
-
 
 /* Walk chunk table and find AtU8/Atom */
 static int walk_chunks_and_parse_atoms(const byte *buf, usize buf_size) {
