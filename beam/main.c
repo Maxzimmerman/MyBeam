@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+#include <inttypes.h>
 
 typedef uint8_t  byte;
 typedef int32_t  Sint32;
@@ -53,7 +54,7 @@ static usize reader_remaining(const Reader *r) {
 }
 
 // checks if bytes to read
-// reads the bytes at *->p into out 
+// reads 8bits the bytes at *->p into out 
 // returns 1 if success and 0 if not
 static int reader_read_u8(Reader *r, byte *out) {
     if (reader_remaining(r) < 1) return 0;
@@ -142,17 +143,6 @@ static int read_tagged(Reader *r, int *tag_out, usize *val_out) {
     }
 }
 
-static int parse_header(const byte *chunk_data, Uint32 chunk_size) {
-    Reader r;
-    reader_init(&r, chunk_data, chunk_size);
-
-    Sint32 count_signed;
-    if(!reader_read_i32(&r, &count_signed)) {
-        printf(stderr, "Failed reading header\n");
-        return 0;
-    }
-}
-
 /* -- replace your parse_atom_chunk() with this version -- */
 static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
     Reader r;
@@ -207,7 +197,7 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
                 fprintf(stderr, "Failed reading byte length for atom %zu\n", i);
                 return 0;
             }
-            // vonvert the 1-byte blen to usize (implicitly) and stores into length
+            // cvonvert the 1-byte blen to usize (implicitly) and stores into length
             length = blen;
         }
 
@@ -226,12 +216,31 @@ static int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size) {
     return 1;
 }
 
+static int parse_header(const byte *buf, usize buf_size, Uint32 *total_size) {
+    const byte *p = buf; 
+
+    char header[5];
+    char beam[5];
+    memcpy(header, p, 4); header[4] = 0;
+    read_be32(buf + 4, buf_size - 4, &total_size);
+    memcpy(beam, p + 8, 4); beam[4] = 0;
+    printf("######BEAM HEADER#######\n");
+    printf("%s\n", header);
+    printf("%" PRIu32 "\n", total_size);
+    printf("%s\n", beam);
+    printf("########################\n");
+
+    return 1;
+}
+
 /* Walk chunk table and find AtU8/Atom */
-static int walk_chunks_and_parse_atoms(const byte *buf, usize buf_size) {
+static int walk_file(const byte *buf, usize buf_size) {
     if (memcmp(buf, "FOR1", 4) != 0) return 0;
 
     // declare a 32-bit unsigned variable to store the total BEAM payload size.
     Uint32 total_size;
+
+    parse_header(buf, buf_size, &total_size);
 
     /*
     Reads the 32-bit big-endian size after "FOR1"
@@ -245,7 +254,7 @@ static int walk_chunks_and_parse_atoms(const byte *buf, usize buf_size) {
 
     No error check here — the parser assumes valid input.
     */
-    read_be32(buf + 4, buf_size - 4, &total_size);
+    //read_be32(buf + 4, buf_size - 4, &total_size);
 
     /*
     Checks bytes 8–11 for the literal "BEAM".
@@ -340,12 +349,13 @@ int main(int argc, char **argv) {
 
     byte *buf;
     usize size;
+    printf("%s \n", buf);
     if (load_file(argv[1], &buf, &size) != 0) {
         printf("File load error\n");
         return 1;
     }
 
-    int ok = walk_chunks_and_parse_atoms(buf, size);
+    int ok = walk_file(buf, size);
     free(buf);
     return ok ? 0 : 1;
 }
