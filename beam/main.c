@@ -221,9 +221,11 @@ static int parse_header(const byte *buf, usize buf_size, Uint32 *total_size) {
 
     char header[5];
     char beam[5];
+
     memcpy(header, p, 4); header[4] = 0;
-    read_be32(buf + 4, buf_size - 4, &total_size);
+    read_be32(buf + 4, buf_size - 4, total_size);
     memcpy(beam, p + 8, 4); beam[4] = 0;
+
     printf("######BEAM HEADER#######\n");
     printf("%s\n", header);
     printf("%" PRIu32 "\n", total_size);
@@ -240,6 +242,7 @@ static int walk_file(const byte *buf, usize buf_size) {
     // declare a 32-bit unsigned variable to store the total BEAM payload size.
     Uint32 total_size;
 
+    // parse header reads the total_size and stores it in total_size
     parse_header(buf, buf_size, &total_size);
 
     /*
