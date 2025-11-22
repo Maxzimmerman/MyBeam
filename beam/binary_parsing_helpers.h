@@ -47,11 +47,3 @@ Uint32 align4(Uint32 n);
 //* -- add this function near your reader helpers -- */
 /* Read a BEAM tagged integer (small/medium/extended). Returns 1 on success. */
 int read_tagged(Reader *r, int *tag_out, usize *val_out); 
-
-/* -- replace your parse_atom_chunk() with this version -- */
-int parse_atom_chunk(const byte *chunk_data, Uint32 chunk_size); 
-
-int parse_header(const byte *buf, usize buf_size, Uint32 *total_size); 
-
-/* Walk chunk table and find AtU8/Atom */
-int walk_file(const byte *buf, usize buf_size);

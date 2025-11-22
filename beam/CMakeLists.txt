@@ -5,6 +5,6 @@ cmake_minimum_required(VERSION 3.10)
 project(beam C)
 
 # Specify the executable and the source files
-add_executable(beam main.c binary_parsing_helpers.c)
+add_executable(beam main.c binary_parsing_helpers.c load.c)
 target_link_libraries(beam z)
 

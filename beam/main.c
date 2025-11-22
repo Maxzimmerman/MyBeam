@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <inttypes.h>
-#include "binary_parsing_helpers.h"
+#include "load.h"
 
 /* Main */
 int main(int argc, char **argv) {
@@ -13,15 +13,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    byte *buf;
-    usize size;
-    printf("%s \n", buf);
-    if (load_file(argv[1], &buf, &size) != 0) {
-        printf("File load error\n");
-        return 1;
-    }
-
-    int ok = walk_file(buf, size);
-    free(buf);
+    int ok = load(argv);
+    
     return ok ? 0 : 1;
 }
