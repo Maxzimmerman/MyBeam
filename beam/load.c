@@ -17,6 +17,7 @@ int load(char **argv) {
     printf("########## Loaded Module ##########\n");
     print_module_name(beam_module);
     print_atoms(beam_module);
+    print_exports(beam_module);
     printf("########## Loaded Module ##########\n");
 
     free(beam_module);
@@ -67,7 +68,7 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
 
         size_t length = strlen(name);
         add_export_to_module(bm, name, length, arity, label);
-        printf("  %s |  arity%u | (label=%u)\n", name, arity, label);
+        //printf("  %s |  arity%u | (label=%u)\n", name, arity, label);
     }
     return 1;
 }
@@ -324,6 +325,8 @@ int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity,
     export->arity = arity;
     export->label = label;
 
+    bm->export_count++;
+
     return 1;
 }
 
@@ -333,6 +336,18 @@ int print_atoms(BeamModule *bm) {
             bm->atom_table[i].index,
             bm->atom_table[i].size,
             bm->atom_table[i].value);
+    }
+    return 1;
+}
+
+int print_exports(BeamModule *bm) {
+    for(int i = 0; i < bm->export_count; i++) {
+        printf("%u ExpT %s, arity: %u, label: %u\n", 
+            i,
+            bm->exports[i].name,
+            bm->exports[i].arity,
+            bm->exports[i].label
+        );
     }
     return 1;
 }

@@ -47,3 +47,4 @@ int print_atoms(BeamModule *bm);
 // export chunk
 int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size);
 int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity, int lable);
+int print_exports(BeamModule *bm);
