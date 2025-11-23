@@ -16,6 +16,7 @@ typedef struct {
 typedef struct beam_module {
     char *module_name;
     Atom* atom_table; 
+    int atom_count;
 } BeamModule;
 
 // loads the whole file in memory and calls the walk_file method on it
@@ -27,4 +28,5 @@ int parse_header(const byte *buf, usize buf_size, Uint32 *total_size);
 int walk_file(BeamModule *bm, const byte *buf, usize buf_size);
 int add_name_to_module(BeamModule *bm, const char *name, usize len);
 int print_module_name(BeamModule *bm);
-int add_atom_to_module(BeamModule *bm, const char *atom);
+int add_atom_to_module(BeamModule *bm, const char *atom, usize len);
+int print_atoms(BeamModule *bm);

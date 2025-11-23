@@ -15,6 +15,7 @@ int load(char **argv) {
     free(buf);
 
     print_module_name(beam_module);
+    print_atoms(beam_module);
 
     free(beam_module);
     return ok ? 0 : 1;
@@ -92,6 +93,9 @@ int parse_atom_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) 
 
         if(i == 1) {
             add_name_to_module(bm, (const char*)s, (int)length);
+        }
+        else {
+            add_atom_to_module(bm, (const char*)s, (int)length);
         }
     }
     return 1;
@@ -233,4 +237,33 @@ int add_name_to_module(BeamModule *bm, const char *name, usize len) {
 
 int print_module_name(BeamModule *bm) {
     printf("MODULE NAME: %s\n", bm->module_name);
+}
+
+int add_atom_to_module(BeamModule *bm, const char *atom, usize len) {
+    bm->atom_table = realloc(bm->atom_table, sizeof(Atom) * (bm->atom_count + 1));
+    if(!bm->atom_table) {
+        perror("realloc failed");
+        exit(1); 
+    }
+
+    Atom *a = &bm->atom_table[bm->atom_count];
+
+    a->index = bm->atom_count;
+    a->size = len;
+    a->value = malloc(a->size + 1);
+    memcpy(a->value, atom, len);
+
+    bm->atom_count++;
+
+    return 1;
+}
+
+int print_atoms(BeamModule *bm) {
+    for (int i = 0; i < bm->atom_count; i++) {
+        printf("Atom %d: size=%d, value=%s\n",
+            bm->atom_table[i].index,
+            bm->atom_table[i].size,
+            bm->atom_table[i].value);
+    }
+    return 1;
 }
