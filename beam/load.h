@@ -13,10 +13,20 @@ typedef struct {
     char *value;
 } Atom;
 
+typedef struct {
+    char *name;
+    int arity;
+    int label;
+} ExpT;
+
 typedef struct beam_module {
     char *module_name;
+
     Atom* atom_table; 
     int atom_count;
+
+    ExpT* exports;
+    int export_count;
 } BeamModule;
 
 // loads the whole file in memory and calls the walk_file method on it
@@ -36,3 +46,4 @@ int print_atoms(BeamModule *bm);
 
 // export chunk
 int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size);
+int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity, int lable);

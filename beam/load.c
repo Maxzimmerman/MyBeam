@@ -65,6 +65,8 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
             name = "(invalid atom index)";
         }
 
+        size_t length = strlen(name);
+        add_export_to_module(bm, name, length, arity, label);
         printf("  %s |  arity%u | (label=%u)\n", name, arity, label);
     }
     return 1;
@@ -305,6 +307,22 @@ int add_atom_to_module(BeamModule *bm, const char *atom, usize len) {
     memcpy(a->value, atom, len);
 
     bm->atom_count++;
+
+    return 1;
+}
+
+int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity, int label) {
+    bm->exports = realloc(bm->exports, sizeof(ExpT) * (bm->export_count + 1));
+    if(!bm->exports) {
+        perror("realloc failed");
+        exit(1);
+    }
+
+    ExpT *export = &bm->exports[bm->export_count];
+    export->name = malloc(len + 1);
+    memcpy(export->name, name, len);
+    export->arity = arity;
+    export->label = label;
 
     return 1;
 }
