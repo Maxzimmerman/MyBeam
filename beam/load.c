@@ -14,11 +14,60 @@ int load(char **argv) {
     int ok = walk_file(beam_module, buf, size);
     free(buf);
 
+    printf("########## Loaded Module ##########\n");
     print_module_name(beam_module);
     print_atoms(beam_module);
+    printf("########## Loaded Module ##########\n");
 
     free(beam_module);
     return ok ? 0 : 1;
+}
+
+int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) {
+    Reader r;
+    reader_init(&r, chunk_data, chunk_size);
+
+    Sint32 count;
+    if(!reader_read_i32(&r, &count)) {
+        fprintf(stderr, "Failed reading export count\n");
+        return 0;
+    }
+
+    size_t export_count = (size_t)count + 1;
+    printf("Found %d exports:\n", (int)count);
+
+    for (size_t i = 1; i <= (size_t)count; ++i) {
+        Uint32 name_idx;
+        Uint32 arity;
+        Uint32 label;
+        // Read name atom index
+        if (!reader_read_i32(&r, &name_idx)) {
+            fprintf(stderr, "Failed reading name index for export %d\n", i);
+            return 0;
+        }
+
+        if (!reader_read_i32(&r, &arity)) {
+            fprintf(stderr, "Failed reading arity index for export %d\n", i);
+            return 0;
+        }
+
+        if (!reader_read_i32(&r, &label)) {
+            fprintf(stderr, "Failed reading label for export %d\n", i);
+            return 0;
+        }
+
+        // resolve name_idx into string
+        const char *name = NULL;
+
+        if (name_idx - 1 < bm->atom_count) {
+            name = bm->atom_table[name_idx - 1].value;
+        } else {
+            name = "(invalid atom index)";
+        }
+
+        printf("  %s |  arity%u | (label=%u)\n", name, arity, label);
+    }
+    return 1;
 }
 
 /* -- replace your parse_atom_chunk() with this version -- */
@@ -89,7 +138,7 @@ int parse_atom_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) 
         if (!reader_read_bytes(&r, &s, length)) return 0;
 
         /* print atom (may be UTF-8) */
-        printf("  %zu: %.*s\n", i, (int)length, (const char*)s);
+        //printf("  %zu: %.*s\n", i, (int)length, (const char*)s);
 
         if(i == 1) {
             add_name_to_module(bm, (const char*)s, (int)length);
@@ -207,7 +256,11 @@ int walk_file(BeamModule *bm, const byte *buf, usize buf_size) {
         */
         if (strcmp(id, "AtU8") == 0 || strcmp(id, "Atom") == 0 || strcmp(id, "AtomUTF8") == 0) {
             printf("Parsing chunk %s (size %u)\n", id, size);
-            return parse_atom_chunk(bm, chunk, size);
+            parse_atom_chunk(bm, chunk, size);
+        }
+        else if(strcmp(id, "ExpT") == 0) {
+            printf("Found Exports %s (size %u)\n", id, size);
+            parse_export_chunk(bm, chunk, size);
         }
 
         /*
@@ -223,8 +276,6 @@ int walk_file(BeamModule *bm, const byte *buf, usize buf_size) {
         */
         p += 8 + align4(size);
     }
-
-    printf("No Atom chunk found\n");
     return 0;
 }
 
