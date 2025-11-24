@@ -34,7 +34,6 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
         return 0;
     }
 
-    size_t export_count = (size_t)count + 1;
     printf("Found %d exports:\n", (int)count);
 
     for (size_t i = 1; i <= (size_t)count; ++i) {
@@ -73,6 +72,55 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
     return 1;
 }
 
+int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) {
+    Reader r;
+    reader_init(&r, chunk_data, chunk_size);
+
+    Uint32 count;
+    reader_read_i32(&r, &count);
+
+    printf("Found %d imports:\n", (int)count);
+
+    for(int i = 1; i <= (size_t)count; i++) {
+        Uint32 module_name_idx;
+        Uint32 function_name_idx;
+        Uint32 arity;
+        // Read name atom index
+        if (!reader_read_i32(&r, &module_name_idx)) {
+            fprintf(stderr, "Failed reading name index for export %d\n", i);
+            return 0;
+        }
+
+        if (!reader_read_i32(&r, &function_name_idx)) {
+            fprintf(stderr, "Failed reading arity index for export %d\n", i);
+            return 0;
+        }
+
+        if (!reader_read_i32(&r, &arity)) {
+            fprintf(stderr, "Failed reading label for export %d\n", i);
+            return 0;
+        }
+
+        const char *module_name = NULL;
+        const char *function_name = NULL;
+
+        if (module_name_idx - 1 < bm->atom_count) {
+            module_name = bm->atom_table[module_name_idx - 1].value;
+        } else {
+            module_name = "(invalid atom index)";
+        }
+
+        if (function_name_idx - 1 < bm->atom_count) {
+            function_name = bm->atom_table[function_name_idx - 1].value;
+        } else {
+            function_name = "(invalid atom index)";
+        }
+
+        printf("  Module %s | function name %s | (label=%u)\n", module_name, function_name, arity);
+    }
+    return 1;
+}
+
 /* -- replace your parse_atom_chunk() with this version -- */
 int parse_atom_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) {
     Reader r;
@@ -102,7 +150,6 @@ int parse_atom_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) 
     This line prepares a size that some code might use if it needed the count including index 0. 
     In this function the variable isn’t further used except to reflect that convention — it’s informational/defensive.
     */
-    size_t atoms_count = (size_t)count + 1;
     printf("Found %d atoms:\n", (int)count);
 
     for (size_t i = 1; i <= (size_t)count; ++i) {
@@ -265,7 +312,14 @@ int walk_file(BeamModule *bm, const byte *buf, usize buf_size) {
             printf("Found Exports %s (size %u)\n", id, size);
             parse_export_chunk(bm, chunk, size);
         }
-
+        else if(strcmp(id, "ImpT") == 0) {
+            printf("Why");
+            printf("Found imports %s (size %u)\n", id, size);
+            parse_import_chunk(bm, chunk, size);
+        }
+        else {
+            printf("%s\n", id);
+        }
         /*
         Move to the next chunk
         BEAM chunks are padded to 4-byte alignment.
