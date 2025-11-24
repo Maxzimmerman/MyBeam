@@ -34,8 +34,6 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
         return 0;
     }
 
-    printf("Found %d exports:\n", (int)count);
-
     for (size_t i = 1; i <= (size_t)count; ++i) {
         Uint32 name_idx;
         Uint32 arity;
@@ -79,8 +77,6 @@ int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
     Uint32 count;
     reader_read_i32(&r, &count);
 
-    printf("Found %d imports:\n", (int)count);
-
     for(int i = 1; i <= (size_t)count; i++) {
         Uint32 module_name_idx;
         Uint32 function_name_idx;
@@ -120,8 +116,6 @@ int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
         usize function_name_len = strlen(function_name);
 
         add_import_to_module(bm, module_name, module_name_len, function_name, function_name_len, arity);
-
-        printf("  Module %s | function name %s | (label=%u)\n", module_name, function_name, arity);
     }
     return 1;
 }
@@ -155,7 +149,6 @@ int parse_atom_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) 
     This line prepares a size that some code might use if it needed the count including index 0. 
     In this function the variable isn’t further used except to reflect that convention — it’s informational/defensive.
     */
-    printf("Found %d atoms:\n", (int)count);
 
     for (size_t i = 1; i <= (size_t)count; ++i) {
         // Will hold the length in bytes of the next atom name.
@@ -310,16 +303,12 @@ int walk_file(BeamModule *bm, const byte *buf, usize buf_size) {
         This stops scanning further chunks because we only want atoms.
         */
         if (strcmp(id, "AtU8") == 0 || strcmp(id, "Atom") == 0 || strcmp(id, "AtomUTF8") == 0) {
-            printf("Parsing chunk %s (size %u)\n", id, size);
             parse_atom_chunk(bm, chunk, size);
         }
         else if(strcmp(id, "ExpT") == 0) {
-            printf("Found Exports %s (size %u)\n", id, size);
             parse_export_chunk(bm, chunk, size);
         }
         else if(strcmp(id, "ImpT") == 0) {
-            printf("Why");
-            printf("Found imports %s (size %u)\n", id, size);
             parse_import_chunk(bm, chunk, size);
         }
         else {
@@ -421,7 +410,7 @@ int print_atoms(BeamModule *bm) {
 
 int print_exports(BeamModule *bm) {
     for(int i = 0; i < bm->export_count; i++) {
-        printf("%u ExpT %s, arity: %u, label: %u\n", 
+        printf("ExpT %d: name=%s, arity=%u, label=%u\n", 
             i,
             bm->exports[i].name,
             bm->exports[i].arity,
