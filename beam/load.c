@@ -18,6 +18,7 @@ int load(char **argv) {
     print_module_name(beam_module);
     print_atoms(beam_module);
     print_exports(beam_module);
+    print_imports(beam_module);
     printf("########## Loaded Module ##########\n");
 
     free(beam_module);
@@ -415,6 +416,18 @@ int print_exports(BeamModule *bm) {
             bm->exports[i].name,
             bm->exports[i].arity,
             bm->exports[i].label
+        );
+    }
+    return 1;
+}
+
+int print_imports(BeamModule *bm) {
+    for(int i = 0; i < bm->import_count; i++) {
+        printf("ImpT %d: module_name=%s, function_name=%s, arity=%u\n",
+            i,
+            bm->imports[i].module_name,
+            bm->imports[i].function_name,
+            bm->imports[i].arity
         );
     }
     return 1;
