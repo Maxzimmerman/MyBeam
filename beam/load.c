@@ -116,6 +116,11 @@ int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
             function_name = "(invalid atom index)";
         }
 
+        usize module_name_len = strlen(module_name);
+        usize function_name_len = strlen(function_name);
+
+        add_import_to_module(bm, module_name, module_name_len, function_name, function_name_len, arity);
+
         printf("  Module %s | function name %s | (label=%u)\n", module_name, function_name, arity);
     }
     return 1;
@@ -380,6 +385,26 @@ int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity,
     export->label = label;
 
     bm->export_count++;
+
+    return 1;
+}
+
+int add_import_to_module(BeamModule *bm, const byte *module_name, usize module_name_len, const byte *function_name, usize function_name_len, int arity) {    bm->imports = realloc(bm->imports, sizeof(ImpT) * (bm->import_count + 1));
+    if(!bm->imports) {
+        perror("realloc faild");
+        exit(1);
+    }
+
+    ImpT *import = &bm->imports[bm->import_count];
+    import->module_name = malloc(module_name_len + 1);
+    memcpy(import->module_name, module_name, module_name_len);
+    
+    import->function_name = malloc(function_name_len + 1);
+    memcpy(import->function_name, function_name, function_name_len);
+
+    import->arity = arity;
+
+    bm->import_count++;
 
     return 1;
 }

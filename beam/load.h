@@ -19,6 +19,12 @@ typedef struct {
     int label;
 } ExpT;
 
+typedef struct {
+    char *module_name;
+    char *function_name;
+    int arity;
+} ImpT;
+
 typedef struct beam_module {
     char *module_name;
 
@@ -27,6 +33,9 @@ typedef struct beam_module {
 
     ExpT* exports;
     int export_count;
+
+    ImpT* imports;
+    int import_count;
 } BeamModule;
 
 // loads the whole file in memory and calls the walk_file method on it
@@ -49,6 +58,6 @@ int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size
 int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity, int lable);
 int print_exports(BeamModule *bm);
 
-
 // import chunk
 int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size);
+int add_import_to_module(BeamModule *bm, const byte *module_name, usize module_name_len, const byte *function_name, usize function_name_len, int arity);
