@@ -355,6 +355,7 @@ int add_atom_to_module(BeamModule *bm, const char *atom, usize len) {
     a->size = len;
     a->value = malloc(a->size + 1);
     memcpy(a->value, atom, len);
+    a->value[len] = '\0';
 
     bm->atom_count++;
 
@@ -371,6 +372,7 @@ int add_export_to_module(BeamModule *bm, const byte *name, usize len, int arity,
     ExpT *export = &bm->exports[bm->export_count];
     export->name = malloc(len + 1);
     memcpy(export->name, name, len);
+    export->name[len] = '\0';
     export->arity = arity;
     export->label = label;
 
@@ -388,9 +390,11 @@ int add_import_to_module(BeamModule *bm, const byte *module_name, usize module_n
     ImpT *import = &bm->imports[bm->import_count];
     import->module_name = malloc(module_name_len + 1);
     memcpy(import->module_name, module_name, module_name_len);
+    import->module_name[module_name_len] = '\0';
     
     import->function_name = malloc(function_name_len + 1);
     memcpy(import->function_name, function_name, function_name_len);
+    import->function_name[function_name_len] = '\0';
 
     import->arity = arity;
 
