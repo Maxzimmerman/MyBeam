@@ -62,3 +62,6 @@ int print_exports(BeamModule *bm);
 int parse_import_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size);
 int add_import_to_module(BeamModule *bm, const byte *module_name, usize module_name_len, const byte *function_name, usize function_name_len, int arity);
 int print_imports(BeamModule *bm);
+
+// string chunk
+int parse_literal_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size);

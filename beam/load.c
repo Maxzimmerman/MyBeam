@@ -25,6 +25,52 @@ int load(char **argv) {
     return ok ? 0 : 1;
 }
 
+int parse_literal_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) {
+    if (chunk_size < 4) return 0;
+
+    Uint32 count;
+    read_be32(chunk_data, chunk_size, &count);
+    printf("%u literals\n", count);
+
+    if (chunk_size < 4 + 4*count) return 0;
+
+    Uint32 *offsets = malloc(sizeof(Uint32) * count);
+    if (!offsets) return 0;
+
+    for (Uint32 i = 0; i < count; i++) {
+        read_be32(chunk_data + 4 + i*4, chunk_size - 4 - i*4, &offsets[i]);
+    }
+
+    const byte *data = chunk_data + 4 + 4*count;
+
+    for (Uint32 i = 0; i < count; i++) {
+        const byte *lit = data + offsets[i];
+
+        // Each literal is an Erlang Term Format (ETF) term
+        if (lit[0] != 131) {
+            printf("Skipping literal %u: not ETF version 131\n", i);
+            continue;
+        }
+
+        byte tag = lit[1];
+        if (tag == 109) { // BINARY_EXT
+            Uint32 len;
+            read_be32(lit + 2, 4, &len);
+            const byte *str = lit + 6;
+            printf("Literal %u (string): %.*s\n", i, len, str);
+        } else if (tag == 108) { // LIST_EXT
+            // optionally decode lists if you want
+            printf("Literal %u is a list, skipping for now\n", i);
+        } else {
+            printf("Literal %u: unhandled tag %u\n", i, tag);
+        }
+    }
+
+    free(offsets);
+    return 1;
+}
+
+
 int parse_export_chunk(BeamModule *bm, const byte *chunk_data, Uint32 chunk_size) {
     Reader r;
     reader_init(&r, chunk_data, chunk_size);
@@ -311,6 +357,12 @@ int walk_file(BeamModule *bm, const byte *buf, usize buf_size) {
         }
         else if(strcmp(id, "ImpT") == 0) {
             parse_import_chunk(bm, chunk, size);
+        }
+        else if(strcmp(id, "Code") == 0) {
+            printf("found code chunk %s\n", id);
+        }
+        else if(strcmp(id, "LitT") == 0) {
+            parse_literal_chunk(bm, chunk, size);
         }
         else {
             printf("%s\n", id);

@@ -1,4 +1,6 @@
 defmodule FirstModule do
+  @my_string "HELLO"
+
   def force_atoms do
     :first
     :second
@@ -6,6 +8,8 @@ defmodule FirstModule do
   end
 
   def first_func do
-    IO.puts("HELLO WORLD")
+    @my_string
+    str = @my_string
+    IO.puts(str)
   end
 end
